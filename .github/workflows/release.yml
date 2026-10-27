@@ -1,0 +1,229 @@
+# Single workflow that drives versioning, releases, documentation and release assets.
+#
+# Flow:
+#   1. release-please  - on every push to main/master, opens/updates a "release PR" that bumps
+#                        package.json's version and rewrites CHANGELOG.md from Conventional Commits.
+#                        Merging that PR cuts the tag + GitHub Release.
+#   2. generate-docs   - generates the C# API reference with SideXP.Instadoc (skipped automatically
+#                        when the package ships no C# sources, e.g. asset-only packages).
+#   3. deploy-pages    - builds the Zensical site and deploys it to GitHub Pages.
+#   4. release-assets  - attaches source + documentation archives to the Release.
+#
+# Because the Release is created with the default GITHUB_TOKEN, its `release: published` event does
+# NOT trigger other workflows. So docs + assets run in THIS run, gated on release-please's output.
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  # Allows rebuilding/redeploying the docs without cutting a release.
+  workflow_dispatch:
+
+jobs:
+  # 0. Template guard
+  # Skips the whole workflow while the repo is still an unconfigured template, on two fronts:
+  #   - the template repo itself (`is_template`), and
+  #   - a repo just generated from the template whose package.json still holds `@todo` placeholders
+  #     (you can't release a package literally named `com.side-xp.@todo`, nor publish @todo docs).
+  # Once `@todo` is gone from package.json, the workflow activates automatically.
+  guard:
+    name: Check template configured
+    runs-on: ubuntu-latest
+    if: "!github.event.repository.is_template"
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Detect unconfigured template
+        id: check
+        run: |
+          if grep -q '@todo' package.json; then
+            echo "package.json still contains @todo placeholders - template not configured yet; skipping."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # 1. Versioning & releases
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    needs: guard
+    if: needs.guard.outputs.configured == 'true' && github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+
+  # 2. C# API reference
+  generate-docs:
+    name: Generate API reference
+    runs-on: ubuntu-latest
+    needs: [guard, release-please]
+    # Run after a release was just cut, or on a manual dispatch. `always()` lets this run on
+    # workflow_dispatch even though `release-please` is skipped then; the guard check still applies.
+    if: |
+      always() &&
+      needs.guard.outputs.configured == 'true' &&
+      (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install SideXP.Instadoc
+        run: dotnet tool install --global SideXP.Instadoc
+
+      # Auto-detect the package's C# source folders so this works for runtime-only, editor-only,
+      # hybrid, demo and asset-only packages with no per-package edits. If no C# sources exist,
+      # API generation is skipped and the docs build still proceeds.
+      - name: Generate API reference
+        id: api
+        run: |
+          inputs=""
+          for d in Runtime Editor Demos; do
+            if [ -d "$d" ] && find "$d" -name '*.cs' -print -quit | grep -q .; then
+              inputs="$inputs --input $d"
+            fi
+          done
+          if [ -n "$inputs" ]; then
+            echo "Generating API reference from:$inputs"
+            instadoc $inputs --output "Documentation~/api"
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No C# sources found - skipping API reference generation."
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload API reference artifact
+        if: steps.api.outputs.generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: Documentation~/api
+          retention-days: 1
+
+  # 3. Documentation site ----------------------------------------------------------------------
+  deploy-pages:
+    name: Build & deploy docs
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    if: always() && needs.generate-docs.result == 'success'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install Zensical + side-xp theme
+        run: pip install "git+https://github.com/side-xp/py-zensical-theme"
+
+      # Download the generated API reference if one was produced (tolerated absence for packages
+      # with no C# sources).
+      - name: Download API reference artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-docs
+          path: Documentation~/api
+        continue-on-error: true
+
+      # Generate the docs index (Documentation~/README.md) from the repo-root README.md.
+      # See the docs:remove / docs:only markers in README.md.
+      - name: Generate docs index
+        run: |
+          sed -e '/<!-- docs:remove:start -->/,/<!-- docs:remove:end -->/d' \
+              -e '/<!-- docs:only:start/d' \
+              -e '/docs:only:end -->/d' \
+              -e 's#\./Documentation~/#./#g' \
+              README.md > "Documentation~/README.md"
+
+      - name: Build site
+        run: zensical build -f "Documentation~/zensical.toml"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Documentation~/site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # 4. Release archives
+  release-assets:
+    name: Attach release assets
+    runs-on: ubuntu-latest
+    needs: [release-please, generate-docs]
+    # Only when a release was actually created (never on manual dispatch).
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Read package name
+        id: pkg
+        run: echo "name=$(jq -r .name package.json)" >> "$GITHUB_OUTPUT"
+
+      # Source archives, honoring .gitattributes `export-ignore`.
+      - name: Build source archives
+        run: |
+          git archive --format=zip    -o "${{ steps.pkg.outputs.name }}.zip"    HEAD
+          git archive --format=tar.gz -o "${{ steps.pkg.outputs.name }}.tar.gz" HEAD
+
+      # Pull the generated API reference into Documentation~/api for the docs archive (if any).
+      - name: Download API reference artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-docs
+          path: Documentation~/api
+        continue-on-error: true
+
+      # Generate the docs index, then zip Documentation~ (incl. generated api/, excl. zensical.toml
+      # and any build output) into Documentation_<tag>.zip.
+      - name: Build documentation archive
+        run: |
+          sed -e '/<!-- docs:remove:start -->/,/<!-- docs:remove:end -->/d' \
+              -e '/<!-- docs:only:start/d' \
+              -e '/docs:only:end -->/d' \
+              -e 's#\./Documentation~/#./#g' \
+              README.md > "Documentation~/README.md"
+          cd "Documentation~"
+          zip -r -q "../Documentation_${{ needs.release-please.outputs.tag_name }}.zip" . \
+            -x "zensical.toml" -x "site/*" -x ".cache/*"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            ${{ steps.pkg.outputs.name }}.zip
+            ${{ steps.pkg.outputs.name }}.tar.gz
+            Documentation_${{ needs.release-please.outputs.tag_name }}.zip
