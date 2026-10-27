@@ -2,8 +2,8 @@
 # Docs are built with the shared `side-xp` theme: https://github.com/side-xp/py-zensical-theme
 
 [project]
-site_name = "SideXP - @todo (Unity)"
-site_description = "@todo"
+site_name = "SideXP - Selection (Unity)"
+site_description = "A utility window that allow selection presets and navigation."
 site_author = "Sideways Experiments"
 copyright = """
 &copy; 2026 <a href="https://sideways-experiments.com">Sideways Experiments</a>

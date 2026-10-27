@@ -1,9 +1,6 @@
-# Sideways Experiments Unity Package (@todo)
+# SideXP - Selection (Unity)
 
-<!-- @todo
-Write package description and minimum Unity version if applicable
-Remove the following block
--->
+A utility window that allow selection presets and navigation.
 
 ## Features
 
@@ -32,7 +29,7 @@ Remove the following block
 ## Documentation & Help
 
 <!-- docs:remove:start -->
-Complete documentation available at https://side-xp.github.io/@todo
+Complete documentation available at https://side-xp.github.io/unity-selection
 <!-- docs:remove:end -->
 
 If you need help or just want to chat with the community and the *Sideways Experiments* core team, you're welcome to join our [Discord server](https://discord.gg/G49RUZ9F2N)!
@@ -43,7 +40,7 @@ If you need help or just want to chat with the community and the *Sideways Exper
 Do you want to get involved in our projects? Check our [contributing guidelines](./CONTRIBUTING.md) to learn more!
 <!-- docs:remove:end -->
 <!-- docs:only:start
-Do you want to get involved in our projects? Check our [contributing guidelines](https://github.com/side-xp/unity-@todo/blob/main/CONTRIBUTING.md) to learn more!
+Do you want to get involved in our projects? Check our [contributing guidelines](https://github.com/side-xp/unity-selection/blob/main/CONTRIBUTING.md) to learn more!
 docs:only:end -->
 
 ## License
