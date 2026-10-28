@@ -32,6 +32,11 @@ namespace SideXP.Selection
             "selection is relevant.")]
         private float _commitDelay = DefaultCommitDelay;
 
+        [SerializeField]
+        [Tooltip("If enabled, the folders browsed from the folder tree of the Project window (two columns layout) are recorded in the " +
+            "history, even though Unity doesn't select them.")]
+        private bool _shouldRecordBrowsedFolders = true;
+
         #endregion
 
 
@@ -67,6 +72,13 @@ namespace SideXP.Selection
         {
             get => Mathf.Max(0, _commitDelay);
             set => _commitDelay = Mathf.Max(0, value);
+        }
+
+        /// <inheritdoc cref="_shouldRecordBrowsedFolders"/>
+        public bool ShouldRecordBrowsedFolders
+        {
+            get => _shouldRecordBrowsedFolders;
+            set => _shouldRecordBrowsedFolders = value;
         }
 
         #endregion
