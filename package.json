@@ -1,6 +1,6 @@
 {
   "name": "com.side-xp.selection",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A utility window that allow selection presets and navigation.",
   "displayName": "SideXP - Selection",
   "unity": "2021.3",
