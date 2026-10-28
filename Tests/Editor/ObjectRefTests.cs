@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
@@ -17,54 +15,19 @@ namespace SideXP.Selection.Tests
     /// Tests for <see cref="ObjectRef"/>.
     /// </summary>
     /// <remarks>
-    /// For edit mode runs, the Test Runner stores the scene setup, opens a new untitled scene and restores the original setup once the
-    /// run is finished. The tests use that untitled scene, and destroy the objects they create on teardown. The loss of the original
-    /// instance is simulated with <see cref="ObjectRef.ClearCache"/>, or by destroying the object. Edit/play mode switches and objects
-    /// saved in a scene asset are not covered here.
+    /// The loss of the original instance is simulated with <see cref="ObjectRef.ClearCache"/>, or by destroying the object. Edit/play
+    /// mode switches and objects saved in a scene asset are not covered here.
     /// </remarks>
-    public class ObjectRefTests
+    public class ObjectRefTests : SceneTestsBase
     {
 
         private const string TempAssetPath = "Assets/__SideXP_Selection_ObjectRefTests__.anim";
 
-        private readonly List<GameObject> _createdObjects = new List<GameObject>();
-
-        [SetUp]
-        public void SetUp()
-        {
-            // Never create test objects in a user scene, in case these tests are run outside of the Test Runner's own scene
-            if (!string.IsNullOrEmpty(SceneManager.GetActiveScene().path))
-                Assert.Ignore("These tests are meant to run in the untitled scene opened by the Test Runner.");
-        }
-
         [TearDown]
-        public void TearDown()
+        public void DeleteTempAsset()
         {
-            foreach (GameObject gameObject in _createdObjects)
-            {
-                if (gameObject != null)
-                    Object.DestroyImmediate(gameObject);
-            }
-            _createdObjects.Clear();
-
             if (AssetDatabase.LoadAssetAtPath<Object>(TempAssetPath) != null)
                 AssetDatabase.DeleteAsset(TempAssetPath);
-        }
-
-        /// <summary>
-        /// Creates a GameObject in the active scene, destroyed on teardown.
-        /// </summary>
-        /// <param name="name">The name of the GameObject.</param>
-        /// <param name="parent">The parent of the GameObject. If null, the GameObject is created at the root of the active scene.</param>
-        /// <returns>Returns the created GameObject.</returns>
-        private GameObject CreateGameObject(string name, GameObject parent = null)
-        {
-            GameObject gameObject = new GameObject(name);
-            if (parent != null)
-                gameObject.transform.SetParent(parent.transform, false);
-
-            _createdObjects.Add(gameObject);
-            return gameObject;
         }
 
         /// <summary>

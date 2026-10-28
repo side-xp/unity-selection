@@ -231,6 +231,10 @@ namespace SideXP.Selection
             if (_object != null)
                 return _object;
 
+            // A scene object can't be found if its scene is not loaded, so skip the costly lookups
+            if (_isSceneObject && !FindLoadedScene().IsValid())
+                return null;
+
             Object obj = null;
 
             // In play mode, scene objects are resolved by hierarchy path only, since their stable ids target their edit mode version
