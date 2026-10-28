@@ -313,6 +313,20 @@ namespace SideXP.Selection
         #endregion
 
 
+        #region Internal API
+
+        /// <summary>
+        /// Forgets the cached reference to the object, so the next resolution uses the stored identifiers.
+        /// </summary>
+        /// <remarks>Meant for tests, to simulate the loss of the original instance without destroying it.</remarks>
+        internal void ClearCache()
+        {
+            _object = null;
+        }
+
+        #endregion
+
+
         #region Private API
 
         /// <summary>
