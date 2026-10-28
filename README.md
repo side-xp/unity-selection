@@ -1,39 +1,29 @@
-# Sideways Experiments Unity Package (@todo)
+# SideXP - Selection (Unity)
 
-<!-- @todo
-Write package description and minimum Unity version if applicable
-Remove the following block
--->
+Navigate back and forth through your previous selections, and save the selections you use the most in numbered slots, so you can get them back with a single shortcut.
+
+All from a single window: `Tools > Sideways Experiments > Selection > Selection Window`
+
+![Selection window overview](./Documentation~/img/demo.gif)
 
 ## Features
 
-<!-- @todo Describe the features included in this package -->
-
-## Installation
-
-### Option 1: Using the Package Manager
-
-1. In your *Unity* project, go to `Window > Package Management > Package Manager` (or `Window > Package Manager` for *Unity 6.0-*)
-2. Click on the *+* icon in the top-left corner, and select *Install package from Git URL...*
-3. In the text field, enter the URL to this package's repository (including the `*.git` extensions), and click *Install*
-4. Wait for Unity to get the files, and you're ready to go!
-
-> Tip: if you need to use a specific version of this package for your project, add `#<tag-name>` to the URL before clicking on the *Install* button.
-
-### Option 2: Extracting archive manually
-
-1. Go to this project's `/releases` list
-2. Download the ZIP file archive of your desired version
-3. Extract the content of that archive into the `Packages/` folder of your Unity project
-4. Wait for Unity to reload the solution, and you're ready to go!
-
-> Tip: to avoid any path issue, make sure the folder that contains the package content has the same name as the `name` property defined in its `package.json` file.
+- **[Selection history](https://side-xp.github.io/unity-selection/guides/manual/#navigating-the-selection-history)**: every selection you make in the editor is recorded, so you can go back to a previous selection (or forward again) at any time.
+- **[Selection slots](https://side-xp.github.io/unity-selection/guides/manual/#using-selection-slots)**: save up to 10 selections in numbered slots, and restore them with a click or a shortcut. Slots are personal and kept between editor sessions.
+- **[Scene objects support](https://side-xp.github.io/unity-selection/guides/manual/#scene-objects-and-unloaded-scenes)**: works with assets and scene objects, even through domain reloads, scene reloads and play mode switches. Objects in scenes that are not loaded are selected again as soon as their scene is loaded.
+- **[Keyboard shortcuts](https://side-xp.github.io/unity-selection/guides/manual/#keyboard-shortcuts)** for everything, rebindable from the *Shortcuts* window.
+- **[Customizable](https://side-xp.github.io/unity-selection/guides/manual/#preferences)** from the *Preferences* window.
+- **[Scripting API](https://side-xp.github.io/unity-selection/guides/recipes/)**: use the history and the slots from your own editor tools.
 
 ## Documentation & Help
 
 <!-- docs:remove:start -->
-Complete documentation available at https://side-xp.github.io/@todo
+Complete documentation available at https://side-xp.github.io/unity-selection
+
 <!-- docs:remove:end -->
+- [Installation](https://side-xp.github.io/unity-selection/installation/): how to add this package (and its dependency to our [Core library](https://github.com/side-xp/unity-core)) to your project
+- [Manual](https://side-xp.github.io/unity-selection/guides/manual/): how to use the Selection window, the shortcuts, the menus and the preferences
+- [Recipes](https://side-xp.github.io/unity-selection/guides/recipes/): how to use the package from your own editor scripts
 
 If you need help or just want to chat with the community and the *Sideways Experiments* core team, you're welcome to join our [Discord server](https://discord.gg/G49RUZ9F2N)!
 
@@ -43,7 +33,7 @@ If you need help or just want to chat with the community and the *Sideways Exper
 Do you want to get involved in our projects? Check our [contributing guidelines](./CONTRIBUTING.md) to learn more!
 <!-- docs:remove:end -->
 <!-- docs:only:start
-Do you want to get involved in our projects? Check our [contributing guidelines](https://github.com/side-xp/unity-@todo/blob/main/CONTRIBUTING.md) to learn more!
+Do you want to get involved in our projects? Check our [contributing guidelines](https://github.com/side-xp/unity-selection/blob/main/CONTRIBUTING.md) to learn more!
 docs:only:end -->
 
 ## License

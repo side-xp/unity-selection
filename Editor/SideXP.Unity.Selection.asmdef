@@ -1,0 +1,19 @@
+{
+    "name": "SideXP.Unity.Selection",
+    "rootNamespace": "SideXP.Selection",
+    "references": [
+        "GUID:9283ff1ac70fa684e99dfc05c2583175",
+        "GUID:04b5181bd899d8a4cb7c0c0df8ca0d2a"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
