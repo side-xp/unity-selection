@@ -10,8 +10,8 @@ namespace SideXP.Selection
     /// refreshes the object references when a scene is saved.
     /// </summary>
     /// <remarks>
-    /// Cleaning during play mode only happens on edit/play mode switches, so objects spawned during the play session can still be
-    /// selected from the history until play mode is exited.
+    /// Cleaning during play mode only happens on edit/play mode switches (or after a domain reload), so objects spawned during the play
+    /// session can still be selected until play mode is exited.
     /// </remarks>
     [InitializeOnLoad]
     internal static class SelectionCleanup
@@ -39,6 +39,9 @@ namespace SideXP.Selection
             EditorSceneManager.newSceneCreated += HandleNewSceneCreated;
             EditorSceneManager.sceneSaved += HandleSceneSaved;
             EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
+
+            // The slots saved on disk may reference temporary objects from a previous session
+            ScheduleClean();
         }
 
         #endregion
@@ -66,6 +69,7 @@ namespace SideXP.Selection
         {
             s_isCleanPending = false;
             SelectionHistory.Clean();
+            SelectionSlots.Clean();
         }
 
         /// <inheritdoc cref="EditorSceneManager.SceneOpenedCallback"/>
@@ -93,6 +97,7 @@ namespace SideXP.Selection
         private static void HandleSceneSaved(Scene scene)
         {
             SelectionHistory.RefreshReferences();
+            SelectionSlots.RefreshReferences();
         }
 
         /// <summary>
