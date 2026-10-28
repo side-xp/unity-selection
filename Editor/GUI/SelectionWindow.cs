@@ -243,7 +243,11 @@ namespace SideXP.Selection
                 {
                     GUIContent content = new GUIContent("Clear", "Remove all the entries of the history, except the current selection.");
                     if (GUILayout.Button(content, EditorStyles.miniButton, MoreGUI.WidthSOpt))
+                    {
                         SelectionHistory.Clear();
+                        // The entries count has changed, so the rest of this GUI pass would draw entries that don't exist anymore
+                        GUIUtility.ExitGUI();
+                    }
                 }
             }
 
