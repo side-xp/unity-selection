@@ -47,7 +47,7 @@ namespace SideXP.Selection
         /// <inheritdoc cref="SelectionSlotCollection.IsAssigned(int)" path="/exception"/>
         public static bool Assign(int index)
         {
-            return Assign(index, SelectionSnapshot.FromCurrentSelection());
+            return AssignSnapshot(index, SelectionSnapshot.FromCurrentSelection());
         }
 
         /// <summary>
@@ -60,7 +60,27 @@ namespace SideXP.Selection
         /// <inheritdoc cref="SelectionSlotCollection.IsAssigned(int)" path="/exception"/>
         public static bool Assign(int index, IEnumerable<Object> objects, Object activeObject = null)
         {
-            return Assign(index, new SelectionSnapshot(objects, activeObject));
+            return AssignSnapshot(index, new SelectionSnapshot(objects, activeObject));
+        }
+
+        /// <summary>
+        /// Saves a copy of the given selection in the given slot, replacing the previous one if any.
+        /// </summary>
+        /// <remarks>
+        /// Objects that can't be resolved (for example, objects in a scene that is not loaded) are saved as well, which is not the case
+        /// when saving resolved objects with <see cref="Assign(int, IEnumerable{Object}, Object)"/>.
+        /// </remarks>
+        /// <param name="index">The index of the slot.</param>
+        /// <param name="snapshot">The selection to save (for example, an entry of <see cref="SelectionHistory.Entries"/>).</param>
+        /// <returns>Returns true if the selection has been saved, or false if it's empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the given snapshot is null.</exception>
+        /// <inheritdoc cref="SelectionSlotCollection.IsAssigned(int)" path="/exception"/>
+        public static bool Assign(int index, SelectionSnapshot snapshot)
+        {
+            if (snapshot == null)
+                throw new ArgumentNullException(nameof(snapshot));
+
+            return AssignSnapshot(index, snapshot.Clone());
         }
 
         /// <summary>
@@ -136,10 +156,10 @@ namespace SideXP.Selection
         /// Saves the given selection in the given slot, replacing the previous one if any.
         /// </summary>
         /// <param name="index">The index of the slot.</param>
-        /// <param name="snapshot">The selection to save.</param>
+        /// <param name="snapshot">The selection to save. This instance is stored as is, so it must not be shared.</param>
         /// <returns>Returns true if the selection has been saved, or false if it's empty.</returns>
         /// <inheritdoc cref="SelectionSlotCollection.IsAssigned(int)" path="/exception"/>
-        private static bool Assign(int index, SelectionSnapshot snapshot)
+        private static bool AssignSnapshot(int index, SelectionSnapshot snapshot)
         {
             Slots.ValidateIndex(index);
             if (snapshot.IsEmpty)

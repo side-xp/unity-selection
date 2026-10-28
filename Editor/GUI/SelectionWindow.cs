@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 using UnityEngine;
@@ -6,6 +7,7 @@ using UnityEditor;
 using SideXP.Core;
 using SideXP.Core.EditorOnly;
 
+using Object = UnityEngine.Object;
 using UnitySelection = UnityEditor.Selection;
 
 namespace SideXP.Selection
@@ -47,14 +49,35 @@ namespace SideXP.Selection
         private const float SlotButtonMinWidth = 24f;
 
         /// <summary>
-        /// The color of the slot buttons that are not assigned, or whose objects are not available.
+        /// The width of the button on each history entry that opens the menu for saving that entry in a slot.
         /// </summary>
-        private static readonly Color UnavailableSlotColor = new Color(1f, 1f, 1f, .5f);
+        private const float SaveToSlotButtonWidth = 48f;
+
+        /// <summary>
+        /// The size of the object icons displayed in the history, so large icons don't stretch the rows.
+        /// </summary>
+        private const float HistoryIconSize = 16f;
+
+        /// <summary>
+        /// The color of the slot buttons that are not assigned, and of the slots or history entries whose objects are not available.
+        /// </summary>
+        private static readonly Color UnavailableColor = new Color(1f, 1f, 1f, .5f);
+
+        /// <summary>
+        /// The background color of the current entry of the history. Translucent, so it works with both light and dark editor themes.
+        /// </summary>
+        private static readonly Color CurrentEntryColor = new Color(.25f, .5f, 1f, .3f);
 
         /// <summary>
         /// The style of the slot buttons that are assigned.
         /// </summary>
         private static GUIStyle s_assignedSlotStyle = null;
+
+        /// <summary>
+        /// The scroll position of the history list.
+        /// </summary>
+        [SerializeField]
+        private Vector2 _historyScrollPosition = Vector2.zero;
 
         #endregion
 
@@ -101,33 +124,33 @@ namespace SideXP.Selection
         /// </summary>
         private void OnGUI()
         {
-            DrawToolbar();
+            DrawNavigation();
             EditorGUILayout.Space();
             DrawSlots();
+            EditorGUILayout.Space();
+            DrawHistory();
         }
 
         /// <summary>
-        /// Draws the toolbar, with the history navigation buttons.
+        /// Draws the history navigation buttons, side by side and sharing the full width of the window.
         /// </summary>
-        private void DrawToolbar()
+        private void DrawNavigation()
         {
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+            using (new EditorGUILayout.HorizontalScope())
             {
                 using (new EnabledScope(SelectionHistory.CanGoBack))
                 {
                     GUIContent content = MakeContent("← Back", "Select the previous selection.", SelectionShortcuts.BackId);
-                    if (GUILayout.Button(content, EditorStyles.toolbarButton))
+                    if (GUILayout.Button(content, MoreGUI.HeightMOpt, GUILayout.ExpandWidth(true)))
                         SelectionHistory.Back();
                 }
 
                 using (new EnabledScope(SelectionHistory.CanGoForward))
                 {
                     GUIContent content = MakeContent("Forward →", "Select the next selection.", SelectionShortcuts.ForwardId);
-                    if (GUILayout.Button(content, EditorStyles.toolbarButton))
+                    if (GUILayout.Button(content, MoreGUI.HeightMOpt, GUILayout.ExpandWidth(true)))
                         SelectionHistory.Forward();
                 }
-
-                GUILayout.FlexibleSpace();
             }
         }
 
@@ -179,7 +202,7 @@ namespace SideXP.Selection
                 }
             }
 
-            using (new ColorScope(isAvailable ? GUI.color : UnavailableSlotColor))
+            using (new ColorScope(isAvailable ? GUI.color : UnavailableColor))
             {
                 if (GUI.Button(rect, content, style) && !SelectionSlots.AssignOrRestore(index))
                 {
@@ -207,6 +230,99 @@ namespace SideXP.Selection
             menu.AddSeparator(string.Empty);
             AddMenuItem(menu, "Clear", isAssigned, () => SelectionSlots.Clear(index));
             menu.ShowAsContext();
+        }
+
+        /// <summary>
+        /// Draws the list of the selection history entries, from the most recent to the oldest.
+        /// </summary>
+        private void DrawHistory()
+        {
+            int count = SelectionHistory.Entries.Count;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("History", EditorStyles.boldLabel);
+                GUILayout.FlexibleSpace();
+
+                using (new EnabledScope(count > 0))
+                {
+                    GUIContent content = new GUIContent("Clear", "Remove all the entries of the history, except the current selection.");
+                    if (GUILayout.Button(content, EditorStyles.miniButton, MoreGUI.WidthSOpt))
+                        SelectionHistory.Clear();
+                }
+            }
+
+            if (count <= 0)
+            {
+                EditorGUILayout.HelpBox("No selection recorded yet.", MessageType.Info);
+                return;
+            }
+
+            using (var scope = new EditorGUILayout.ScrollViewScope(_historyScrollPosition))
+            {
+                EditorGUIUtility.SetIconSize(new Vector2(HistoryIconSize, HistoryIconSize));
+                for (int i = count - 1; i >= 0; i--)
+                    DrawHistoryEntry(i);
+                EditorGUIUtility.SetIconSize(Vector2.zero);
+
+                _historyScrollPosition = scope.scrollPosition;
+            }
+        }
+
+        /// <summary>
+        /// Draws a given entry of the history. Clicking it selects that entry, and its button opens a menu for saving it in a slot.
+        /// </summary>
+        /// <param name="index">The index of the entry in the history.</param>
+        private void DrawHistoryEntry(int index)
+        {
+            SelectionSnapshot entry = SelectionHistory.Entries[index];
+            bool isCurrent = index == SelectionHistory.CurrentIndex;
+
+            Rect rowRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            if (isCurrent)
+                EditorGUI.DrawRect(rowRect, CurrentEntryColor);
+
+            Rect labelRect = new Rect(rowRect);
+            labelRect.width -= SaveToSlotButtonWidth + MoreGUI.HMargin;
+
+            using (new ColorScope(entry.CanResolve() ? GUI.color : UnavailableColor))
+            {
+                GUIContent content = new GUIContent(
+                    SelectionDisplayUtility.GetName(entry),
+                    GetEntryIcon(entry),
+                    GetSnapshotDescription(entry));
+                if (GUI.Button(labelRect, content, isCurrent ? EditorStyles.boldLabel : EditorStyles.label) && !SelectionHistory.GoTo(index))
+                    Debug.LogWarning("The objects of this selection are not available");
+            }
+
+            Rect buttonRect = new Rect(rowRect);
+            buttonRect.xMin = buttonRect.xMax - SaveToSlotButtonWidth;
+
+            GUIContent buttonContent = new GUIContent("Slot", "Save this selection in a slot.");
+            if (EditorGUI.DropdownButton(buttonRect, buttonContent, FocusType.Passive, EditorStyles.miniPullDown))
+                ShowSaveToSlotMenu(buttonRect, entry);
+        }
+
+        /// <summary>
+        /// Opens the menu for saving a given history entry in a slot.
+        /// </summary>
+        /// <param name="buttonRect">The position of the button that opens the menu.</param>
+        /// <param name="entry">The history entry to save.</param>
+        private void ShowSaveToSlotMenu(Rect buttonRect, SelectionSnapshot entry)
+        {
+            GenericMenu menu = new GenericMenu();
+            for (int i = 0; i < SelectionSlots.Count; i++)
+            {
+                int slotIndex = i;
+                SelectionSnapshot slot = SelectionSlots.Get(slotIndex);
+                // Checked if this entry is already saved in that slot
+                bool isSaved = slot != null && slot.HasSameObjects(entry);
+
+                string label = slot != null && !isSaved
+                    ? $"Slot {GetSlotLabel(slotIndex)} (replace)"
+                    : $"Slot {GetSlotLabel(slotIndex)}";
+                menu.AddItem(new GUIContent(label), isSaved, () => SelectionSlots.Assign(slotIndex, entry));
+            }
+            menu.DropDown(buttonRect);
         }
 
         #endregion
@@ -296,6 +412,26 @@ namespace SideXP.Selection
                 builder.Append($"\nAssign or replace: {assignBinding}");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Gets the icon of a given history entry: the icon of its main object (see
+        /// <see cref="SelectionDisplayUtility.GetMainObject(SelectionSnapshot)"/>), or the icon of its type if it can't be resolved.
+        /// </summary>
+        /// <param name="entry">The history entry.</param>
+        /// <returns>Returns the icon of the entry, or null if there's none.</returns>
+        private static Texture GetEntryIcon(SelectionSnapshot entry)
+        {
+            ObjectRef mainObject = SelectionDisplayUtility.GetMainObject(entry);
+            if (mainObject == null)
+                return null;
+
+            Object obj = mainObject.Resolve();
+            if (obj != null)
+                return EditorGUIUtility.ObjectContent(obj, obj.GetType()).image;
+
+            Type type = mainObject.ObjectType;
+            return type != null ? EditorGUIUtility.ObjectContent(null, type).image : null;
         }
 
         /// <summary>

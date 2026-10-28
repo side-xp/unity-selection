@@ -288,6 +288,34 @@ namespace SideXP.Selection
         }
 
         /// <summary>
+        /// Checks if this reference and the given one target the same object. If at least one of them can be resolved, the resolved
+        /// objects are compared. Otherwise, their stable ids are compared, or their hierarchy paths if they don't have one.
+        /// </summary>
+        /// <param name="other">The reference to compare.</param>
+        /// <returns>Returns true if both references target the same object.</returns>
+        public bool RefersToSameObject(ObjectRef other)
+        {
+            if (other == null)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            Object obj = Resolve();
+            Object otherObj = other.Resolve();
+            if (obj != null || otherObj != null)
+                return obj == otherObj;
+
+            if (IsPersistent || other.IsPersistent)
+                return _globalId == other._globalId;
+
+            return _isSceneObject
+                && other._isSceneObject
+                && ScenePath == other.ScenePath
+                && HasSameHierarchyPath(other);
+        }
+
+        /// <summary>
         /// Captures again the identifiers of the referenced object, if it's still alive. This is meant to be called after a scene has
         /// been saved (so objects not saved before get a stable id), or after an object has been renamed or moved in the hierarchy.
         /// </summary>
@@ -304,6 +332,17 @@ namespace SideXP.Selection
 
             Capture(obj);
             return true;
+        }
+
+        /// <summary>
+        /// Creates a copy of this reference, independent from the original one.
+        /// </summary>
+        /// <returns>Returns the created copy.</returns>
+        public ObjectRef Clone()
+        {
+            ObjectRef clone = (ObjectRef)MemberwiseClone();
+            clone._hierarchyPath = new List<PathNode>(_hierarchyPath);
+            return clone;
         }
 
         /// <inheritdoc/>
@@ -376,6 +415,30 @@ namespace SideXP.Selection
 
             if (obj is Component component)
                 _component = new PathNode(component.GetType().AssemblyQualifiedName, GetOccurrence(component));
+        }
+
+        /// <summary>
+        /// Checks if this reference and the given one have the same hierarchy path, including the component part.
+        /// </summary>
+        /// <param name="other">The reference to compare.</param>
+        /// <returns>Returns true if both hierarchy paths are the same.</returns>
+        private bool HasSameHierarchyPath(ObjectRef other)
+        {
+            if (_hierarchyPath.Count != other._hierarchyPath.Count)
+                return false;
+
+            for (int i = 0; i < _hierarchyPath.Count; i++)
+            {
+                if (_hierarchyPath[i].Name != other._hierarchyPath[i].Name
+                    || _hierarchyPath[i].Occurrence != other._hierarchyPath[i].Occurrence)
+                {
+                    return false;
+                }
+            }
+
+            // Null and empty names are considered equal, since Unity deserializes null strings as empty ones
+            return (_component.Name ?? string.Empty) == (other._component.Name ?? string.Empty)
+                && _component.Occurrence == other._component.Occurrence;
         }
 
         /// <summary>

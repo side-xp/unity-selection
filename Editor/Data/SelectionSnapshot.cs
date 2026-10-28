@@ -161,6 +161,27 @@ namespace SideXP.Selection
         }
 
         /// <summary>
+        /// Checks if this snapshot and the given one contain the same objects, regardless of their order. Unlike
+        /// <see cref="Matches(SelectionSnapshot)"/>, the objects that can't be resolved are compared too (using
+        /// <see cref="ObjectRef.RefersToSameObject(ObjectRef)"/>). The active object is not compared.
+        /// </summary>
+        /// <param name="other">The snapshot to compare.</param>
+        /// <returns>Returns true if both snapshots contain the same objects.</returns>
+        public bool HasSameObjects(SelectionSnapshot other)
+        {
+            if (other == null || other.Count != Count)
+                return false;
+
+            // Snapshots don't contain duplicates, so checking that each object has a match in the other snapshot is enough
+            foreach (ObjectRef objRef in _objects)
+            {
+                if (!other._objects.Exists(otherRef => otherRef.RefersToSameObject(objRef)))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Selects the objects of this snapshot in the editor. Objects that can't be resolved are skipped.
         /// </summary>
         /// <returns>Returns true if the selection has been applied, or false if none of the objects can be resolved.</returns>
@@ -217,6 +238,18 @@ namespace SideXP.Selection
                 }
             }
             return hasChanged;
+        }
+
+        /// <summary>
+        /// Creates a copy of this snapshot, independent from the original one (cleaning or refreshing the copy doesn't affect the
+        /// original).
+        /// </summary>
+        /// <returns>Returns the created copy.</returns>
+        public SelectionSnapshot Clone()
+        {
+            SelectionSnapshot clone = (SelectionSnapshot)MemberwiseClone();
+            clone._objects = _objects.ConvertAll(objRef => objRef.Clone());
+            return clone;
         }
 
         /// <summary>
