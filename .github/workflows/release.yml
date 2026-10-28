@@ -31,7 +31,6 @@ jobs:
   guard:
     name: Check template configured
     runs-on: ubuntu-latest
-    if: "!github.event.repository.is_template"
     outputs:
       configured: ${{ steps.check.outputs.configured }}
     steps:
