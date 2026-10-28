@@ -12,8 +12,9 @@ namespace SideXP.Selection
     /// Tracks the selection changes in the editor, and allows navigating through the previous selections.
     /// </summary>
     /// <remarks>
-    /// Empty selections are not recorded. A selection is recorded only once it has remained unchanged for <see cref="CommitDelay"/>, so
-    /// interactions that change the selection many times in a row (like rectangle selection in the Scene view) produce a single entry.
+    /// Empty selections are not recorded. A selection is recorded only once it has remained unchanged for
+    /// <see cref="SelectionEditorConfig.CommitDelay"/>, so interactions that change the selection many times in a row (like rectangle
+    /// selection in the Scene view) produce a single entry.
     /// </remarks>
     [InitializeOnLoad]
     public static class SelectionHistory
@@ -22,9 +23,10 @@ namespace SideXP.Selection
         #region Fields
 
         /// <summary>
-        /// The delay (in seconds) during which the selection must remain unchanged before being recorded.
+        /// The delay (in seconds) during which the current selection must remain unchanged before being recorded. Read from the editor
+        /// config when the selection changes, so the config is not queried on every editor update.
         /// </summary>
-        private const double CommitDelay = .3;
+        private static double s_commitDelay = SelectionEditorConfig.DefaultCommitDelay;
 
         /// <summary>
         /// Indicates if the selection has changed since it has been recorded for the last time.
@@ -154,7 +156,7 @@ namespace SideXP.Selection
         }
 
         /// <summary>
-        /// Records the current selection now if it has changed, instead of waiting for <see cref="CommitDelay"/>.
+        /// Records the current selection now if it has changed, instead of waiting for <see cref="SelectionEditorConfig.CommitDelay"/>.
         /// </summary>
         public static void Flush()
         {
@@ -192,6 +194,9 @@ namespace SideXP.Selection
         {
             s_isCommitPending = false;
 
+            // Applied here so changes made from the Preferences window are taken into account without being notified
+            Buffer.MaxCount = SelectionEditorConfig.I.HistoryMaxCount;
+
             // Check before capturing a snapshot, since it's costly for large selections
             SelectionSnapshot current = Buffer.Current;
             if (current != null && current.Matches(UnitySelection.objects))
@@ -208,14 +213,15 @@ namespace SideXP.Selection
         {
             s_isCommitPending = true;
             s_lastChangeTime = EditorApplication.timeSinceStartup;
+            s_commitDelay = SelectionEditorConfig.I.CommitDelay;
         }
 
         /// <summary>
-        /// Called on each editor update, to record the selection once it has remained unchanged for <see cref="CommitDelay"/>.
+        /// Called on each editor update, to record the selection once it has remained unchanged for <see cref="s_commitDelay"/>.
         /// </summary>
         private static void HandleEditorUpdate()
         {
-            if (s_isCommitPending && EditorApplication.timeSinceStartup - s_lastChangeTime >= CommitDelay)
+            if (s_isCommitPending && EditorApplication.timeSinceStartup - s_lastChangeTime >= s_commitDelay)
                 Flush();
         }
 
