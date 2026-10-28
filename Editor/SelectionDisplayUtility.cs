@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+
+using UnityEngine;
 
 namespace SideXP.Selection
 {
@@ -100,6 +103,62 @@ namespace SideXP.Selection
         }
 
         /// <summary>
+        /// Gets a message describing the objects of a given selection that can't be selected, grouped by the scene that must be loaded
+        /// to select them.
+        /// </summary>
+        /// <param name="snapshot">The selection to check.</param>
+        /// <returns>Returns the message, or an empty string if all the objects of the selection can be selected.</returns>
+        public static string GetUnavailableObjectsMessage(SelectionSnapshot snapshot)
+        {
+            if (snapshot == null)
+                return string.Empty;
+
+            // Using a list of scene names alongside the dictionary to keep the order in which scenes are found
+            List<string> unloadedScenes = new List<string>();
+            Dictionary<string, int> unloadedCounts = new Dictionary<string, int>();
+            int missingCount = 0;
+
+            foreach (ObjectRef objRef in snapshot.Objects)
+            {
+                EObjectRefState state = objRef.GetState();
+                if (state == EObjectRefState.Resolved)
+                    continue;
+
+                if (state == EObjectRefState.Missing)
+                {
+                    missingCount++;
+                    continue;
+                }
+
+                string sceneName = string.IsNullOrEmpty(objRef.SceneName) ? objRef.ScenePath : objRef.SceneName;
+                if (unloadedCounts.TryGetValue(sceneName, out int count))
+                {
+                    unloadedCounts[sceneName] = count + 1;
+                }
+                else
+                {
+                    unloadedScenes.Add(sceneName);
+                    unloadedCounts[sceneName] = 1;
+                }
+            }
+
+            if (unloadedScenes.Count <= 0 && missingCount <= 0)
+                return string.Empty;
+
+            StringBuilder builder = new StringBuilder("Some objects of the restored selection can't be selected:");
+            foreach (string sceneName in unloadedScenes)
+                builder.Append($"\n- {CountObjects(unloadedCounts[sceneName])} in the scene \"{sceneName}\", which is not loaded");
+
+            if (missingCount > 0)
+            {
+                string verb = missingCount > 1 ? "don't" : "doesn't";
+                builder.Append($"\n- {CountObjects(missingCount)} that {verb} exist anymore");
+            }
+
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// Truncates a given text at the end of the last whole word that fits, and appends <see cref="Ellipsis"/> to it.
         /// </summary>
         /// <param name="text">The text to truncate.</param>
@@ -136,7 +195,33 @@ namespace SideXP.Selection
         #endregion
 
 
+        #region Internal API
+
+        /// <summary>
+        /// Logs a warning if some objects of a given selection can't be selected. Meant to be called after restoring a selection.
+        /// </summary>
+        /// <param name="snapshot">The restored selection.</param>
+        internal static void LogUnavailableObjects(SelectionSnapshot snapshot)
+        {
+            string message = GetUnavailableObjectsMessage(snapshot);
+            if (!string.IsNullOrEmpty(message))
+                Debug.LogWarning(message);
+        }
+
+        #endregion
+
+
         #region Private API
+
+        /// <summary>
+        /// Gets the given number of objects as text (for example "1 object" or "3 objects").
+        /// </summary>
+        /// <param name="count">The number of objects.</param>
+        /// <returns>Returns the number of objects as text.</returns>
+        private static string CountObjects(int count)
+        {
+            return count > 1 ? $"{count} objects" : $"{count} object";
+        }
 
         /// <summary>
         /// Checks if the given character is considered as a word boundary.

@@ -204,13 +204,9 @@ namespace SideXP.Selection
 
             using (new ColorScope(isAvailable ? GUI.color : UnavailableColor))
             {
-                if (GUI.Button(rect, content, style) && !SelectionSlots.AssignOrRestore(index))
-                {
-                    string message = isAssigned
-                        ? "The objects of this slot are not available"
-                        : "Select objects to save them in this slot";
-                    Debug.LogWarning(message);
-                }
+                // Restoring a slot already logs a warning if its objects are not available
+                if (GUI.Button(rect, content, style) && !SelectionSlots.AssignOrRestore(index) && !isAssigned)
+                    Debug.LogWarning("Select objects to save them in this slot");
             }
         }
 
@@ -290,8 +286,9 @@ namespace SideXP.Selection
                     SelectionDisplayUtility.GetName(entry),
                     GetEntryIcon(entry),
                     GetSnapshotDescription(entry));
-                if (GUI.Button(labelRect, content, isCurrent ? EditorStyles.boldLabel : EditorStyles.label) && !SelectionHistory.GoTo(index))
-                    Debug.LogWarning("The objects of this selection are not available");
+                // Selecting an entry already logs a warning if its objects are not available
+                if (GUI.Button(labelRect, content, isCurrent ? EditorStyles.boldLabel : EditorStyles.label))
+                    SelectionHistory.GoTo(index);
             }
 
             Rect buttonRect = new Rect(rowRect);

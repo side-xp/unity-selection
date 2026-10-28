@@ -152,6 +152,49 @@ namespace SideXP.Selection.Tests
 
         #endregion
 
+
+        #region Unavailable objects
+
+        [Test]
+        public void GetUnavailableObjectsMessage_AllObjectsResolved_ReturnsEmptyString()
+        {
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { CreateGameObject("A"), CreateTempAsset() });
+
+            Assert.AreEqual(string.Empty, SelectionDisplayUtility.GetUnavailableObjectsMessage(snapshot));
+        }
+
+        [Test]
+        public void GetUnavailableObjectsMessage_NullSnapshot_ReturnsEmptyString()
+        {
+            Assert.AreEqual(string.Empty, SelectionDisplayUtility.GetUnavailableObjectsMessage(null));
+        }
+
+        [Test]
+        public void GetUnavailableObjectsMessage_OneDestroyedObject_UsesSingular()
+        {
+            GameObject a = CreateGameObject("A");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a, CreateGameObject("B") });
+
+            Object.DestroyImmediate(a);
+
+            StringAssert.Contains("1 object that doesn't exist anymore", SelectionDisplayUtility.GetUnavailableObjectsMessage(snapshot));
+        }
+
+        [Test]
+        public void GetUnavailableObjectsMessage_SeveralDestroyedObjects_CountsThem()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a, b, CreateGameObject("C") });
+
+            Object.DestroyImmediate(a);
+            Object.DestroyImmediate(b);
+
+            StringAssert.Contains("2 objects that don't exist anymore", SelectionDisplayUtility.GetUnavailableObjectsMessage(snapshot));
+        }
+
+        #endregion
+
     }
 
 }

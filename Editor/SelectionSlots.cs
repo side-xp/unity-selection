@@ -84,7 +84,7 @@ namespace SideXP.Selection
         }
 
         /// <summary>
-        /// Selects the objects saved in the given slot. Objects that can't be resolved are skipped.
+        /// Selects the objects saved in the given slot. Objects that can't be resolved are skipped, and a warning is logged to list them.
         /// </summary>
         /// <param name="index">The index of the slot.</param>
         /// <returns>
@@ -94,7 +94,12 @@ namespace SideXP.Selection
         public static bool Restore(int index)
         {
             SelectionSnapshot snapshot = Slots.Get(index);
-            return snapshot != null && snapshot.Apply();
+            if (snapshot == null)
+                return false;
+
+            bool isApplied = snapshot.Apply();
+            SelectionDisplayUtility.LogUnavailableObjects(snapshot);
+            return isApplied;
         }
 
         /// <summary>

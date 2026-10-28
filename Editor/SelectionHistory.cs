@@ -108,7 +108,8 @@ namespace SideXP.Selection
         /// Selects the entry at the given index of the history.
         /// </summary>
         /// <remarks>
-        /// If the current selection has not been recorded yet, it's discarded, so the given index still targets the expected entry.
+        /// If the current selection has not been recorded yet, it's discarded, so the given index still targets the expected entry. The
+        /// objects of the entry that can't be resolved are skipped, and a warning is logged to list them.
         /// </remarks>
         /// <param name="index">The index of the entry to select.</param>
         /// <returns>
@@ -119,7 +120,10 @@ namespace SideXP.Selection
             if (index < 0 || index >= Buffer.Count)
                 return false;
 
-            if (!Buffer.Entries[index].Apply())
+            SelectionSnapshot entry = Buffer.Entries[index];
+            bool isApplied = entry.Apply();
+            SelectionDisplayUtility.LogUnavailableObjects(entry);
+            if (!isApplied)
                 return false;
 
             // The resulting selection change matches the new current entry, so it won't be recorded
