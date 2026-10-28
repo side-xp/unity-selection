@@ -4,9 +4,6 @@
   "description": "A utility window that allow selection presets and navigation.",
   "displayName": "SideXP - Selection",
   "unity": "2021.3",
-  "dependencies": {
-    "com.side-xp.core": "1.5.0"
-  },
   "author": {
     "name": "Sideways Experiments",
     "email": "dev@side-xp.com",
