@@ -273,6 +273,33 @@ namespace SideXP.Selection.Tests
         }
 
         [Test]
+        public void Clone_ResolvesSameObject()
+        {
+            GameObject child = CreateGameObject("Child", CreateGameObject("Root"));
+            ObjectRef clone = new ObjectRef(child).Clone();
+
+            clone.ClearCache();
+
+            Assert.AreSame(child, clone.Resolve());
+            Assert.AreEqual("Root/Child", clone.HierarchyPath);
+        }
+
+        [Test]
+        public void Clone_RefreshedClone_DoesNotChangeOriginal()
+        {
+            GameObject root = CreateGameObject("Root");
+            ObjectRef original = new ObjectRef(root);
+            ObjectRef clone = original.Clone();
+
+            root.name = "Renamed";
+            clone.Refresh();
+
+            Assert.AreEqual("Root", original.Name);
+            Assert.AreEqual("Root", original.HierarchyPath, "The hierarchy path of the original should not be shared with the clone.");
+            Assert.AreEqual("Renamed", clone.HierarchyPath);
+        }
+
+        [Test]
         public void Is_SameAndOtherObjects_ComparesResolvedObject()
         {
             GameObject root = CreateGameObject("Root");

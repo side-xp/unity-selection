@@ -224,6 +224,39 @@ namespace SideXP.Selection.Tests
         #endregion
 
 
+        #region Cloning
+
+        [Test]
+        public void Clone_CopiesObjectsAndActiveObject()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            SelectionSnapshot clone = new SelectionSnapshot(new Object[] { a, b }, b).Clone();
+
+            Assert.AreEqual(2, clone.Count);
+            Assert.IsTrue(clone.Matches(new Object[] { a, b }));
+            Assert.IsTrue(clone.Active.Is(b));
+        }
+
+        [Test]
+        public void Clone_CleanedClone_DoesNotChangeOriginal()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            SelectionSnapshot original = new SelectionSnapshot(new Object[] { a, b }, b);
+            SelectionSnapshot clone = original.Clone();
+
+            Object.DestroyImmediate(b);
+            clone.Clean();
+
+            Assert.AreEqual(1, clone.Count);
+            Assert.AreEqual(2, original.Count, "The objects list of the original should not be shared with the clone.");
+            Assert.IsNotNull(original.Active, "The active object of the original should not be affected by cleaning the clone.");
+        }
+
+        #endregion
+
+
         #region Cleaning
 
         [Test]
