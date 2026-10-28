@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/side-xp/unity-selection/compare/v1.0.1...v1.0.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* fixed missing meta ([eca1a31](https://github.com/side-xp/unity-selection/commit/eca1a3128f3bd75130e13e9a520d2d098cb7b911))
+
 ## [1.0.1](https://github.com/side-xp/unity-selection/compare/v1.0.0...v1.0.1) (2026-10-28)
 
 
