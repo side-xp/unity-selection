@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/side-xp/unity-selection/compare/v1.0.0...v1.0.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* fixed docs target ([e465e48](https://github.com/side-xp/unity-selection/commit/e465e48e25a42f65d3b98da3496d68606f767d0e))
+
 ## 1.0.0 (2026-10-28)
 
 
