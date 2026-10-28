@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 using UnityEditor.ShortcutManagement;
 
@@ -20,8 +22,8 @@ namespace SideXP.Selection
 
         private const string ShortcutPrefix = Constants.CompanyName + "/Selection/";
 
-        private const string BackId = ShortcutPrefix + "Back";
-        private const string ForwardId = ShortcutPrefix + "Forward";
+        internal const string BackId = ShortcutPrefix + "Back";
+        internal const string ForwardId = ShortcutPrefix + "Forward";
 
         /// <summary>
         /// Prefix of the shortcuts that restore a slot, or assign it if it's not assigned yet (same behavior as clicking a slot button).
@@ -44,6 +46,50 @@ namespace SideXP.Selection
         /// slots (Edit > Selection > Save Selection), which use Ctrl+Alt.
         /// </summary>
         private const ShortcutModifiers AssignSlotModifiers = ShortcutModifiers.Alt | ShortcutModifiers.Shift;
+
+        #endregion
+
+
+        #region Internal API
+
+        /// <summary>
+        /// Gets the id of the shortcut that restores or assigns the given slot.
+        /// </summary>
+        /// <param name="index">The index of the slot.</param>
+        /// <returns>Returns the shortcut id.</returns>
+        internal static string GetRestoreSlotId(int index)
+        {
+            return $"{RestoreSlotIdPrefix}{index + 1}";
+        }
+
+        /// <summary>
+        /// Gets the id of the shortcut that assigns or replaces the given slot.
+        /// </summary>
+        /// <param name="index">The index of the slot.</param>
+        /// <returns>Returns the shortcut id.</returns>
+        internal static string GetAssignSlotId(int index)
+        {
+            return $"{AssignSlotIdPrefix}{index + 1}";
+        }
+
+        /// <summary>
+        /// Gets the keys currently bound to the given shortcut, as displayed in the Shortcuts window.
+        /// </summary>
+        /// <param name="id">The id of the shortcut.</param>
+        /// <returns>Returns the readable key binding, or an empty string if the shortcut is not bound or doesn't exist.</returns>
+        internal static string GetBindingLabel(string id)
+        {
+            try
+            {
+                ShortcutBinding binding = ShortcutManager.instance.GetShortcutBinding(id);
+                return binding.Equals(ShortcutBinding.empty) ? string.Empty : binding.ToString();
+            }
+            // Thrown if the shortcut doesn't exist
+            catch (ArgumentException)
+            {
+                return string.Empty;
+            }
+        }
 
         #endregion
 
