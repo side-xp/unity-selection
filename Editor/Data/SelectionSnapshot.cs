@@ -185,6 +185,50 @@ namespace SideXP.Selection
             return true;
         }
 
+        /// <summary>
+        /// Removes the objects that don't exist anymore, or that can't be identified anymore (objects not saved in a scene that has been
+        /// closed or reloaded, objects spawned in play mode once back to edit mode, ...). Objects saved in a scene that is not loaded are
+        /// kept, since they can be resolved again once that scene is loaded.
+        /// </summary>
+        /// <remarks>
+        /// The objects that don't have a stable id but are still resolved are refreshed, so they get one if possible (for example, an
+        /// object selected in play mode that also exists in edit mode).
+        /// </remarks>
+        /// <returns>Returns true if at least one object has been removed.</returns>
+        public bool Clean()
+        {
+            bool hasChanged = false;
+            for (int i = _objects.Count - 1; i >= 0; i--)
+            {
+                EObjectRefState state = _objects[i].GetState();
+                if (state == EObjectRefState.Missing)
+                {
+                    _objects.RemoveAt(i);
+                    if (i == _activeIndex)
+                        _activeIndex = -1;
+                    else if (i < _activeIndex)
+                        _activeIndex--;
+
+                    hasChanged = true;
+                }
+                else if (state == EObjectRefState.Resolved && !_objects[i].IsPersistent)
+                {
+                    _objects[i].Refresh();
+                }
+            }
+            return hasChanged;
+        }
+
+        /// <summary>
+        /// Captures again the identifiers of the objects that are still alive.
+        /// </summary>
+        /// <inheritdoc cref="ObjectRef.Refresh" path="/remarks"/>
+        public void Refresh()
+        {
+            foreach (ObjectRef objRef in _objects)
+                objRef.Refresh();
+        }
+
         #endregion
 
     }

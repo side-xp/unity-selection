@@ -137,6 +137,22 @@ namespace SideXP.Selection
             OnChanged?.Invoke();
         }
 
+        /// <inheritdoc cref="SelectionHistoryBuffer.Clean"/>
+        public static bool Clean()
+        {
+            if (!Buffer.Clean())
+                return false;
+
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        /// <inheritdoc cref="SelectionHistoryBuffer.Refresh"/>
+        public static void RefreshReferences()
+        {
+            Buffer.Refresh();
+        }
+
         /// <summary>
         /// Records the current selection now if it has changed, instead of waiting for <see cref="CommitDelay"/>.
         /// </summary>

@@ -223,6 +223,77 @@ namespace SideXP.Selection.Tests
 
         #endregion
 
+
+        #region Cleaning
+
+        [Test]
+        public void Clean_DestroyedObjects_AreRemoved()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            GameObject c = CreateGameObject("C");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a, b, c });
+
+            Object.DestroyImmediate(b);
+
+            Assert.IsTrue(snapshot.Clean());
+            Assert.AreEqual(2, snapshot.Count);
+            Assert.IsTrue(snapshot.Objects[0].Is(a));
+            Assert.IsTrue(snapshot.Objects[1].Is(c));
+        }
+
+        [Test]
+        public void Clean_NothingMissing_ReturnsFalse()
+        {
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { CreateGameObject("A"), CreateGameObject("B") });
+
+            Assert.IsFalse(snapshot.Clean());
+            Assert.AreEqual(2, snapshot.Count);
+        }
+
+        [Test]
+        public void Clean_ActiveObjectDestroyed_ClearsActiveObject()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a, b }, b);
+
+            Object.DestroyImmediate(b);
+            snapshot.Clean();
+
+            Assert.IsNull(snapshot.Active);
+        }
+
+        [Test]
+        public void Clean_ObjectBeforeActiveObjectDestroyed_KeepsActiveObject()
+        {
+            GameObject a = CreateGameObject("A");
+            GameObject b = CreateGameObject("B");
+            GameObject c = CreateGameObject("C");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a, b, c }, c);
+
+            Object.DestroyImmediate(a);
+            snapshot.Clean();
+
+            Assert.IsNotNull(snapshot.Active);
+            Assert.IsTrue(snapshot.Active.Is(c));
+        }
+
+        [Test]
+        public void Clean_AllObjectsDestroyed_LeavesEmptySnapshot()
+        {
+            GameObject a = CreateGameObject("A");
+            SelectionSnapshot snapshot = new SelectionSnapshot(new Object[] { a }, a);
+
+            Object.DestroyImmediate(a);
+
+            Assert.IsTrue(snapshot.Clean());
+            Assert.IsTrue(snapshot.IsEmpty);
+            Assert.IsNull(snapshot.Active);
+        }
+
+        #endregion
+
     }
 
 }

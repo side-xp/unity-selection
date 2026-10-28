@@ -149,6 +149,53 @@ namespace SideXP.Selection
             _currentIndex = -1;
         }
 
+        /// <summary>
+        /// Removes the objects that don't exist anymore from the entries, and the entries that become empty. If the current entry is
+        /// removed, the previous remaining entry becomes the current one.
+        /// </summary>
+        /// <inheritdoc cref="SelectionSnapshot.Clean" path="/remarks"/>
+        /// <returns>Returns true if at least one object or entry has been removed.</returns>
+        public bool Clean()
+        {
+            bool hasChanged = false;
+            int newCurrentIndex = -1;
+            List<SelectionSnapshot> remainingEntries = new List<SelectionSnapshot>(_entries.Count);
+
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                SelectionSnapshot entry = _entries[i];
+                if (entry.Clean())
+                    hasChanged = true;
+
+                if (entry.IsEmpty)
+                    hasChanged = true;
+                else
+                    remainingEntries.Add(entry);
+
+                // If the current entry has been removed, this points to the previous remaining entry
+                if (i == _currentIndex)
+                    newCurrentIndex = remainingEntries.Count - 1;
+            }
+
+            if (newCurrentIndex < 0 && remainingEntries.Count > 0)
+                newCurrentIndex = 0;
+
+            _entries.Clear();
+            _entries.AddRange(remainingEntries);
+            _currentIndex = newCurrentIndex;
+            return hasChanged;
+        }
+
+        /// <summary>
+        /// Captures again the identifiers of the objects that are still alive in all the entries.
+        /// </summary>
+        /// <inheritdoc cref="ObjectRef.Refresh" path="/remarks"/>
+        public void Refresh()
+        {
+            foreach (SelectionSnapshot entry in _entries)
+                entry.Refresh();
+        }
+
         #endregion
 
 

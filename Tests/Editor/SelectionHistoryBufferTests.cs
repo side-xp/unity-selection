@@ -3,6 +3,7 @@ using System;
 using NUnit.Framework;
 
 using UnityEngine;
+using UnityEditor.SceneManagement;
 
 using Object = UnityEngine.Object;
 
@@ -212,6 +213,109 @@ namespace SideXP.Selection.Tests
             Assert.AreEqual(0, history.Count);
             Assert.AreEqual(-1, history.CurrentIndex);
             Assert.IsNull(history.Current);
+        }
+
+        #endregion
+
+
+        #region Cleaning
+
+        /// <summary>
+        /// Destroys the object referenced by the first object of the given entry.
+        /// </summary>
+        /// <param name="entry">The entry of which you want to destroy the first object.</param>
+        private static void DestroyFirstObject(SelectionSnapshot entry)
+        {
+            Object.DestroyImmediate(entry.Objects[0].Resolve());
+        }
+
+        [Test]
+        public void Clean_NothingMissing_ReturnsFalse()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B");
+
+            Assert.IsFalse(history.Clean());
+            Assert.AreEqual(2, history.Count);
+        }
+
+        [Test]
+        public void Clean_EntryWithDestroyedObjects_IsRemoved()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B", "C");
+            SelectionSnapshot a = history.Entries[0];
+            SelectionSnapshot c = history.Entries[2];
+
+            DestroyFirstObject(history.Entries[1]);
+
+            Assert.IsTrue(history.Clean());
+            Assert.AreEqual(2, history.Count);
+            Assert.AreSame(a, history.Entries[0]);
+            Assert.AreSame(c, history.Entries[1]);
+        }
+
+        [Test]
+        public void Clean_EntryBeforeCurrentRemoved_KeepsCurrentEntry()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B", "C");
+            SelectionSnapshot current = history.Current;
+
+            DestroyFirstObject(history.Entries[0]);
+            history.Clean();
+
+            Assert.AreEqual(1, history.CurrentIndex);
+            Assert.AreSame(current, history.Current);
+        }
+
+        [Test]
+        public void Clean_CurrentEntryRemoved_PreviousEntryBecomesCurrent()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B", "C");
+            SelectionSnapshot b = history.Entries[1];
+
+            DestroyFirstObject(history.Current);
+            history.Clean();
+
+            Assert.AreEqual(1, history.CurrentIndex);
+            Assert.AreSame(b, history.Current);
+        }
+
+        [Test]
+        public void Clean_FirstEntryRemovedWhileCurrent_NextEntryBecomesCurrent()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B");
+            SelectionSnapshot b = history.Entries[1];
+            history.SetCurrentIndex(0);
+
+            DestroyFirstObject(history.Current);
+            history.Clean();
+
+            Assert.AreEqual(0, history.CurrentIndex);
+            Assert.AreSame(b, history.Current);
+        }
+
+        [Test]
+        public void Clean_AllEntriesRemoved_EmptiesHistory()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B");
+
+            DestroyFirstObject(history.Entries[0]);
+            DestroyFirstObject(history.Entries[1]);
+
+            Assert.IsTrue(history.Clean());
+            Assert.AreEqual(0, history.Count);
+            Assert.AreEqual(-1, history.CurrentIndex);
+        }
+
+        [Test]
+        public void Clean_UnsavedObjectsAfterSceneReload_AreRemoved()
+        {
+            SelectionHistoryBuffer history = CreateHistory("A", "B");
+
+            // Simulates a scene reloaded without saving: the new untitled scene has the same (empty) path, but not the objects
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            Assert.IsTrue(history.Clean());
+            Assert.AreEqual(0, history.Count);
         }
 
         #endregion
