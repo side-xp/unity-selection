@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/side-xp/unity-selection/compare/v1.0.2...v1.1.0) (2026-11-09)
+
+
+### Features
+
+* add main toolbar ([75154bf](https://github.com/side-xp/unity-selection/commit/75154bfdbd5bc379d34750f405c712150a617844))
+
 ## [1.0.2](https://github.com/side-xp/unity-selection/compare/v1.0.1...v1.0.2) (2026-10-28)
 
 
