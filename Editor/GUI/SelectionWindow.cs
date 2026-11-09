@@ -376,7 +376,7 @@ namespace SideXP.Selection
         /// </summary>
         /// <param name="index">The index of the slot.</param>
         /// <returns>Returns the label of the slot.</returns>
-        private static string GetSlotLabel(int index)
+        internal static string GetSlotLabel(int index)
         {
             return ((index + 1) % NumberKeysCount).ToString();
         }

@@ -1,6 +1,6 @@
 # Manual
 
-This package lets you navigate through your previous selections, and save the selections you use the most in numbered slots. Everything is available from the Selection window, the keyboard shortcuts and the main toolbar menus.
+This package lets you navigate through your previous selections, and save the selections you use the most in numbered slots. Everything is available from the Selection window, the main toolbar, the keyboard shortcuts and the menus.
 
 ## The Selection window
 
@@ -16,9 +16,28 @@ Slots and history entries whose objects can't be selected right now (for example
 
 ![Selection window](../img/window.png)
 
+## The main toolbar
+
+> Unity 6.3 and newer
+
+The package adds controls to the left side of the editor's main toolbar, so you can use the selection history and slots without opening the Selection window:
+
+- **←** / **→**: go back to the previous selection, or forward to the next one. They're disabled when there's no selection to go back or forward to.
+- **Selection**: opens a menu that lists the slots.
+    - Click an assigned slot to restore its selection. Slots whose objects can't be selected right now are marked as *unavailable*.
+    - Click an empty slot to save the current selection in it.
+    - Use *Save Current Selection* to save the current selection in any slot, replacing its content if it's already assigned.
+    - Use *Open Selection Window* to open the [Selection window](#the-selection-window).
+
+![Selection controls in the main toolbar](../img/toolbar.png)
+
+These controls are hidden by default. To show them, right-click the main toolbar and enable *Sideways Experiments > Selection*. The three controls are shown or hidden together.
+
+> Note: the toolbar controls rely on an editor API introduced in Unity 6.3, so they're not available in older versions. Everything else in this package works the same.
+
 ## Navigating the selection history
 
-Each time the selection changes, it's recorded as a new entry in the history. Use the *Back* and *Forward* buttons of the window, the [menus](#menus) or the [shortcuts](#keyboard-shortcuts) to move through it.
+Each time the selection changes, it's recorded as a new entry in the history. Use the *Back* and *Forward* buttons of the window, the arrows of the [main toolbar](#the-main-toolbar), the [menus](#menus) or the [shortcuts](#keyboard-shortcuts) to move through it.
 
 A few things to know about how selections are recorded:
 
@@ -33,6 +52,7 @@ A few things to know about how selections are recorded:
 - **Click an assigned slot** to restore its selection.
 - **Right-click a slot** to restore it, replace its content with the current selection, or clear it.
 - From the history list, use the *Slot* button of an entry to save that selection in a slot without having to select it first.
+- From the *Selection* menu of the [main toolbar](#the-main-toolbar), restore or assign any slot without opening the window.
 
 Slots are saved in the `UserSettings/` folder of your project. They're kept between editor sessions, and they're personal: they're not shared with your team through version control.
 
@@ -59,7 +79,7 @@ All these shortcuts can be rebound from the *Shortcuts* window (`Edit > Shortcut
 
 > `Tools > Sideways Experiments > Selection`
 
-The same actions are available from the main toolbar:
+The same actions are available from the *Tools* menu:
 
 - **Selection Window**: opens the Selection window
 - **Back** / **Forward**: navigates through the selection history

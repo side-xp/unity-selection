@@ -10,6 +10,7 @@ All from a single window: `Tools > Sideways Experiments > Selection > Selection 
 
 - **[Selection history](https://side-xp.github.io/unity-selection/guides/manual/#navigating-the-selection-history)**: every selection you make in the editor is recorded, so you can go back to a previous selection (or forward again) at any time.
 - **[Selection slots](https://side-xp.github.io/unity-selection/guides/manual/#using-selection-slots)**: save up to 10 selections in numbered slots, and restore them with a click or a shortcut. Slots are personal and kept between editor sessions.
+- **[Main toolbar controls](https://side-xp.github.io/unity-selection/guides/manual/#the-main-toolbar)**: navigate through the history and use the slots right from the editor's main toolbar (Unity 6.3 and newer).
 - **[Scene objects support](https://side-xp.github.io/unity-selection/guides/manual/#scene-objects-and-unloaded-scenes)**: works with assets and scene objects, even through domain reloads, scene reloads and play mode switches. Objects in scenes that are not loaded are selected again as soon as their scene is loaded.
 - **[Keyboard shortcuts](https://side-xp.github.io/unity-selection/guides/manual/#keyboard-shortcuts)** for everything, rebindable from the *Shortcuts* window.
 - **[Customizable](https://side-xp.github.io/unity-selection/guides/manual/#preferences)** from the *Preferences* window.
@@ -22,7 +23,7 @@ Complete documentation available at https://side-xp.github.io/unity-selection
 
 <!-- docs:remove:end -->
 - [Installation](https://side-xp.github.io/unity-selection/installation/): how to add this package (and its dependency to our [Core library](https://github.com/side-xp/unity-core)) to your project
-- [Manual](https://side-xp.github.io/unity-selection/guides/manual/): how to use the Selection window, the shortcuts, the menus and the preferences
+- [Manual](https://side-xp.github.io/unity-selection/guides/manual/): how to use the Selection window, the main toolbar, the shortcuts, the menus and the preferences
 - [Recipes](https://side-xp.github.io/unity-selection/guides/recipes/): how to use the package from your own editor scripts
 
 If you need help or just want to chat with the community and the *Sideways Experiments* core team, you're welcome to join our [Discord server](https://discord.gg/G49RUZ9F2N)!
