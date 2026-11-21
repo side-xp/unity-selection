@@ -8,7 +8,7 @@ namespace SideXP.Selection
     /// <summary>
     /// Generate menus to edit the Selection package editor config.
     /// </summary>
-    public class SelectionEditorConfigProvider : DefaultConfigSettingsProvider
+    public static class SelectionEditorConfigProvider
     {
 
         /// <summary>
@@ -18,7 +18,10 @@ namespace SideXP.Selection
         [SettingsProvider]
         private static SettingsProvider RegisterUserSettingsMenu()
         {
-            return MakeSettingsProvider(SelectionEditorConfig.I, EditorConstants.Preferences + "/Selection", SettingsScope.User);
+            return EditorConfigSettingsProvider.Create<SelectionEditorConfig>(
+                EditorConstants.Preferences + "/Selection",
+                SettingsScope.User
+            );
         }
 
     }
