@@ -10,7 +10,7 @@ namespace SideXP.Selection
     /// </summary>
     /// <remarks>Stored in the user settings, since these are personal preferences.</remarks>
     [EditorConfig(EEditorConfigScope.User)]
-    public class SelectionEditorConfig : ScriptableObject, IEditorConfig
+    public class SelectionEditorConfig : EditorConfig<SelectionEditorConfig>
     {
 
         #region Fields
@@ -40,23 +40,7 @@ namespace SideXP.Selection
         #endregion
 
 
-        #region Lifecycle
-
-        /// <inheritdoc cref="IEditorConfig.PostLoad"/>
-        public void PostLoad() { }
-
-        #endregion
-
-
         #region Public API
-
-        /// <summary>
-        /// Gets the loaded settings or load them from disk if not already.
-        /// </summary>
-        public static SelectionEditorConfig Instance => EditorConfigUtility.Get<SelectionEditorConfig>();
-
-        /// <inheritdoc cref="Instance"/>
-        public static SelectionEditorConfig I => Instance;
 
         /// <inheritdoc cref="_historyMaxCount"/>
         /// <remarks>Can't be lower than 1.</remarks>
