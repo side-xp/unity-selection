@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/side-xp/unity-selection/compare/v1.1.0...v1.2.0) (2026-11-22)
+
+
+### Features
+
+* migrate to core lib 1.6 ([a97d740](https://github.com/side-xp/unity-selection/commit/a97d740d79021ae115132b00a38f2cbd0e8f7382))
+
 ## [1.1.0](https://github.com/side-xp/unity-selection/compare/v1.0.2...v1.1.0) (2026-11-09)
 
 
