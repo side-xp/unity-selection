@@ -140,14 +140,14 @@ namespace SideXP.Selection
             {
                 using (new EnabledScope(SelectionHistory.CanGoBack))
                 {
-                    GUIContent content = MakeContent("← Back", "Select the previous selection.", SelectionShortcuts.BackId);
+                    GUIContent content = MakeContent("Back", "Select the previous selection.", SelectionShortcuts.BackId, "arrow-left");
                     if (GUILayout.Button(content, MoreGUI.HeightMOpt, GUILayout.ExpandWidth(true)))
                         SelectionHistory.Back();
                 }
 
                 using (new EnabledScope(SelectionHistory.CanGoForward))
                 {
-                    GUIContent content = MakeContent("Forward →", "Select the next selection.", SelectionShortcuts.ForwardId);
+                    GUIContent content = MakeContent("Forward", "Select the next selection.", SelectionShortcuts.ForwardId, "arrow-right");
                     if (GUILayout.Button(content, MoreGUI.HeightMOpt, GUILayout.ExpandWidth(true)))
                         SelectionHistory.Forward();
                 }
@@ -241,8 +241,8 @@ namespace SideXP.Selection
 
                 using (new EnabledScope(count > 0))
                 {
-                    GUIContent content = new GUIContent("Clear", "Remove all the entries of the history, except the current selection.");
-                    if (GUILayout.Button(content, EditorStyles.miniButton, MoreGUI.WidthSOpt))
+                    GUIContent btnContent = EditorIcons.IconContent("clear-all", "Clear", "Remove all the entries of the history, except the current selection.");
+                    if (GUILayout.Button(btnContent, EditorStyles.miniButton, MoreGUI.WidthSOpt))
                     {
                         SelectionHistory.Clear();
                         // The entries count has changed, so the rest of this GUI pass would draw entries that don't exist anymore
@@ -348,11 +348,17 @@ namespace SideXP.Selection
         /// <param name="text">The text of the control.</param>
         /// <param name="tooltip">The tooltip of the control.</param>
         /// <param name="shortcutId">The id of the shortcut that performs the same action as the control.</param>
+        /// <param name="icon">The name of the icon to use in the content.</param>
         /// <returns>Returns the created content.</returns>
-        private static GUIContent MakeContent(string text, string tooltip, string shortcutId)
+        private static GUIContent MakeContent(string text, string tooltip, string shortcutId, string icon = null)
         {
             string binding = SelectionShortcuts.GetBindingLabel(shortcutId);
-            return new GUIContent(text, string.IsNullOrEmpty(binding) ? tooltip : $"{tooltip} ({binding})");
+            tooltip = string.IsNullOrEmpty(binding) ? tooltip : $"{tooltip} ({binding})";
+
+            if (!string.IsNullOrWhiteSpace(icon))
+                return EditorIcons.IconContent(icon, text, tooltip);
+            else
+                return new GUIContent(text, tooltip);
         }
 
         /// <summary>
