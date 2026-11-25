@@ -10,7 +10,7 @@ Since our packages are not published on a registry, Unity can't fetch this depen
 
 1. In your *Unity* project, go to `Window > Package Management > Package Manager` (or `Window > Package Manager` for *Unity 6.0-*)
 2. Click on the *+* icon in the top-left corner, and select *Install package from Git URL...*
-3. In the text field, enter the URL to this package's repository (including the `*.git` extension), and click *Install*
+3. In the text field, enter [the URL to this package's repository](https://github.com/side-xp/unity-selection.git) (including the `*.git` extension), and click *Install*
 4. Wait for Unity to get the files, and you're ready to go!
 
 > Tip: if you need to use a specific version of this package for your project, add `#<tag-name>` to the URL before clicking on the *Install* button.
